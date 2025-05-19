@@ -27,6 +27,9 @@ header {
 
 .Logo img {
     height: 80px;
+    width: auto;
+    max-width: 160px;
+    display: block;
     margin-right: 20px;
 }
 
