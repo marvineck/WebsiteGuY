@@ -1,7 +1,6 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
-    color: #333;
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
@@ -9,15 +8,45 @@ body {
 }
 
 header {
-    background-color: #a0c3a2;
-    padding: 20px;
-    text-align: center;
+    background-color: #6a824e;
     border-radius: 0 0 10px 10px;
     margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 20px 0;
 }
+
+.Logo {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.Logo img {
+    height: 80px;
+    margin-right: 20px;
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.header-text h1,
+.header-text p {
+    margin: 0;
+    text-align: center;
+    color: white;
+}
+
 
 h1, h2, h3 {
     color: #4a644c;
+    margin: 20px 0 10px;
 }
 
 .container {
@@ -40,65 +69,80 @@ h1, h2, h3 {
     border-radius: 10px;
 }
 
-button {
-    background-color: #4a644c;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 5px 0;
-}
-
-button:hover {
-    background-color: #5a7a5c;
-}
-
-input, textarea {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-}
-
-th {
-    background-color: #a0c3a2;
-}
-
-tr:nth-child(even) {
-    background-color: #f2f2f2;
-}
-
 footer {
     text-align: center;
     margin-top: 40px;
     padding: 20px;
-    background-color: #a0c3a2;
+    background-color: #6a824e;
     border-radius: 10px 10px 0 0;
+    color: white;
 }
 
-.admin-panel {
-    background-color: #f0f0f0;
-    padding: 20px;
+iframe {
+    border: none;
     border-radius: 10px;
-    margin-top: 40px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    background: white;
+}
+
+#schedule-section {
+    background: #e8f0e9;
+    padding: 24px 16px;
+    border-radius: 10px;
+    margin-bottom: 40px;
+}
+
+#schedule-section h2 {
+    margin-top: 0;
 }
 
 @media (max-width: 768px) {
+    body {
+        padding: 0 5px;
+    }
+
+    header {
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 0;
+        min-height: unset;
+    }
+
+    .Logo {
+        position: static;
+        transform: none;
+        margin-bottom: 10px;
+    }
+
+    .Logo img {
+        height: 60px;
+        margin-right: 0;
+    }
+
+    .header-text h1 {
+        font-size: 1.4em;
+    }
+
+    .header-text p {
+        font-size: 1em;
+    }
+
     .container {
         flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .main-content, .sidebar {
+        min-width: unset;
+        padding: 10px;
+    }
+
+    .sidebar {
+        margin-top: 10px;
+    }
+
+    #schedule-section iframe {
+        height: 250px;
     }
 }
