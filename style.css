@@ -81,6 +81,11 @@ footer {
     color: white;
 }
 
+footer a {
+    text-decoration: none;
+    color: inherit;
+}
+
 iframe {
     border: none;
     border-radius: 10px;
