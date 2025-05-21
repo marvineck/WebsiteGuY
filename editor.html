@@ -56,17 +56,21 @@
             justify-content: space-between;
             align-items: center;
         }
-        .error {
-            color: red;
+        .error, .success {
             text-align: center;
         }
+        .error { color: red; }
+        .success { color: green; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Gong und Yoga - Termine bearbeiten</h1>
         <h2>Neuen Termin hinzufügen</h2>
-        <form id="schedule-form">
+        <form id="schedule-form" action="https://api.web3forms.com/submit" method="POST">
+            <input type="hidden" name="access_key" value="82985997-3cf0-4b36-86a8-e208e79396a9">
+            <input type="hidden" name="webhook" value="https://api.github.com/repos/marvineck/WebsiteGuY/dispatches">
+            <input type="hidden" name="action" value="add">
             <div class="form-group">
                 <label for="date">Datum (YYYY-MM-DD):</label>
                 <input type="text" id="date" name="date" placeholder="z.B. 2025-06-01" required>
@@ -87,7 +91,7 @@
         </form>
         <h2>Aktuelle Termine</h2>
         <ul id="schedule-list"></ul>
-        <p id="error-message" class="error"></p>
+        <p id="message" class="error"></p>
     </div>
 
     <script>
@@ -109,35 +113,35 @@
                     });
                 })
                 .catch(error => {
-                    document.getElementById('error-message').textContent = 'Fehler beim Laden der Termine.';
+                    document.getElementById('message').textContent = 'Fehler beim Laden der Termine.';
+                    document.getElementById('message').className = 'error';
                     console.error('Error:', error);
                 });
         }
 
-        // Add new event
+        // Handle form submission
         document.getElementById('schedule-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const date = document.getElementById('date').value;
-            const time = document.getElementById('time').value;
-            const description = document.getElementById('description').value;
-            const password = document.getElementById('password').value;
-
+            const form = e.target;
+            const message = document.getElementById('message');
             try {
-                const response = await fetch('82985997-3cf0-4b36-86a8-e208e79396a9', { // Replace with your endpoint, e.g., AWS Lambda or Web3Forms
+                const response = await fetch(form.action, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date, time, description, password, action: 'add' })
+                    body: new FormData(form)
                 });
                 const result = await response.json();
                 if (response.ok) {
-                    document.getElementById('schedule-form').reset();
+                    form.reset();
                     loadSchedule();
-                    document.getElementById('error-message').textContent = 'Termin erfolgreich hinzugefügt!';
+                    message.textContent = 'Termin erfolgreich hinzugefügt! (Änderungen können kurz dauern)';
+                    message.className = 'success';
                 } else {
-                    document.getElementById('error-message').textContent = result.message || 'Fehler beim Hinzufügen.';
+                    message.textContent = result.message || 'Fehler beim Hinzufügen.';
+                    message.className = 'error';
                 }
             } catch (error) {
-                document.getElementById('error-message').textContent = 'Serverfehler. Bitte später versuchen.';
+                message.textContent = 'Serverfehler. Bitte später versuchen.';
+                message.className = 'error';
             }
         });
 
@@ -148,21 +152,34 @@
             const time = prompt('Neue Uhrzeit (HH:MM):');
             const description = prompt('Neue Beschreibung:');
             if (date && time && description && password) {
+                const formData = new FormData();
+                formData.append('access_key', '82985997-3cf0-4b36-86a8-e208e79396a9');
+                formData.append('webhook', 'https://api.github.com/repos/marvineck/WebsiteGuY/dispatches');
+                formData.append('action', 'edit');
+                formData.append('index', index);
+                formData.append('date', date);
+                formData.append('time', time);
+                formData.append('description', description);
+                formData.append('password', password);
+
                 try {
-                    const response = await fetch('YOUR_API_ENDPOINT', {
+                    const response = await fetch('https://api.web3forms.com/submit', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ index, date, time, description, password, action: 'edit' })
+                        body: formData
                     });
                     const result = await response.json();
+                    const message = document.getElementById('message');
                     if (response.ok) {
                         loadSchedule();
-                        document.getElementById('error-message').textContent = 'Termin erfolgreich bearbeitet!';
+                        message.textContent = 'Termin erfolgreich bearbeitet! (Änderungen können kurz dauern)';
+                        message.className = 'success';
                     } else {
-                        document.getElementById('error-message').textContent = result.message || 'Fehler beim Bearbeiten.';
+                        message.textContent = result.message || 'Fehler beim Bearbeiten.';
+                        message.className = 'error';
                     }
                 } catch (error) {
-                    document.getElementById('error-message').textContent = 'Serverfehler. Bitte später versuchen.';
+                    document.getElementById('message').textContent = 'Serverfehler. Bitte später versuchen.';
+                    document.getElementById('message').className = 'error';
                 }
             }
         }
@@ -171,21 +188,31 @@
         async function deleteEvent(index) {
             const password = prompt('Passwort eingeben:');
             if (password) {
+                const formData = new FormData();
+                formData.append('access_key', '82985997-3cf0-4b36-86a8-e208e79396a9');
+                formData.append('webhook', 'https://api.github.com/marvineck/WebsiteGuY/dispatches');
+                formData.append('action', 'delete');
+                formData.append('index', index);
+                formData.append('password', password);
+
                 try {
-                    const response = await fetch('YOUR_API_ENDPOINT', {
+                    const response = await fetch('https://api.web3forms.com/submit', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ index, password, action: 'delete' })
+                        body: formData
                     });
                     const result = await response.json();
+                    const message = document.getElementById('message');
                     if (response.ok) {
                         loadSchedule();
-                        document.getElementById('error-message').textContent = 'Termin erfolgreich gelöscht!';
+                        message.textContent = 'Termin erfolgreich gelöscht! (Änderungen können kurz dauern)';
+                        message.className = 'success';
                     } else {
-                        document.getElementById('error-message').textContent = result.message || 'Fehler beim Löschen.';
+                        message.textContent = result.message || 'Fehler beim Löschen.';
+                        message.className = 'error';
                     }
                 } catch (error) {
-                    document.getElementById('error-message').textContent = 'Serverfehler. Bitte später versuchen.';
+                    document.getElementById('message').textContent = 'Serverfehler. Bitte später versuchen.';
+                    document.getElementById('message').className = 'error';
                 }
             }
         }
