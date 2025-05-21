@@ -61,24 +61,29 @@
         }
         .error { color: red; }
         .success { color: green; }
+        #download-button {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #2196F3;
+            text-align: center;
+        }
+        #download-button:hover {
+            background-color: #1976D2;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Gong und Yoga - Termine bearbeiten</h1>
         <h2>Neuen Termin hinzufügen</h2>
-        <form id="schedule-form" action="https://api.web3forms.com/submit" method="POST">
-            <input type="hidden" name="access_key" value="82985997-3cf0-4b36-86a8-e208e79396a9">
-            <input type="hidden" name="webhook" value="https://api.github.com/repos/marvineck/WebsiteGuY/dispatches">
-            <input type="hidden" name="event_type" value="update-schedule">
-            <input type="hidden" name="action" value="add">
+        <form id="schedule-form">
             <div class="form-group">
                 <label for="date">Datum (YYYY-MM-DD):</label>
-                <input type="text" id="date" name="date" placeholder="z.B. 2025-06-01" required>
+                <input type="text" id="date" name="date" placeholder="z.B. 2025-06-01" pattern="\d{4}-\d{2}-\d{2}" required>
             </div>
             <div class="form-group">
                 <label for="time">Uhrzeit (HH:MM):</label>
-                <input type="text" id="time" name="time" placeholder="z.B. 18:00" required>
+                <input type="text" id="time" name="time" placeholder="z.B. 18:00" pattern="\d{2}:\d{2}" required>
             </div>
             <div class="form-group">
                 <label for="description">Beschreibung:</label>
@@ -92,15 +97,21 @@
         </form>
         <h2>Aktuelle Termine</h2>
         <ul id="schedule-list"></ul>
+        <button id="download-button">Aktualisiertes schedule.json herunterladen</button>
         <p id="message" class="error"></p>
+        <p><strong>Anleitung:</strong> Nach dem Bearbeiten der Termine klicken Sie auf "Aktualisiertes schedule.json herunterladen". Laden Sie die Datei anschließend auf GitHub hoch, um die Änderungen auf der Website anzuzeigen.</p>
     </div>
 
     <script>
+        const ADMIN_PASSWORD = 'y0g4G0ng2025'; // Replace with a secure password
+        let scheduleData = { schedule: [] };
+
         // Fetch and display current schedule
         function loadSchedule() {
             fetch('schedule.json')
                 .then(response => response.json())
                 .then(data => {
+                    scheduleData = data;
                     const scheduleList = document.getElementById('schedule-list');
                     scheduleList.innerHTML = '';
                     data.schedule.forEach((event, index) => {
@@ -120,105 +131,74 @@
                 });
         }
 
-        // Handle form submission
-        document.getElementById('schedule-form').addEventListener('submit', async (e) => {
+        // Handle form submission (add event)
+        document.getElementById('schedule-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const form = e.target;
             const message = document.getElementById('message');
-            try {
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    body: new FormData(form)
-                });
-                const result = await response.json();
-                if (response.ok) {
-                    form.reset();
-                    loadSchedule();
-                    message.textContent = 'Termin erfolgreich hinzugefügt! (Änderungen können kurz dauern)';
-                    message.className = 'success';
-                } else {
-                    message.textContent = result.message || 'Fehler beim Hinzufügen.';
-                    message.className = 'error';
-                }
-            } catch (error) {
-                message.textContent = 'Serverfehler. Bitte später versuchen.';
+            const password = document.getElementById('password').value;
+            if (password !== ADMIN_PASSWORD) {
+                message.textContent = 'Ungültiges Passwort.';
                 message.className = 'error';
+                return;
             }
+
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+            const description = document.getElementById('description').value;
+
+            scheduleData.schedule.push({ date, time, description });
+            document.getElementById('schedule-form').reset();
+            loadSchedule();
+            message.textContent = 'Termin hinzugefügt! Bitte schedule.json herunterladen und hochladen.';
+            message.className = 'success';
         });
 
         // Edit event
-        async function editEvent(index) {
+        function editEvent(index) {
             const password = prompt('Passwort eingeben:');
-            const date = prompt('Neues Datum (YYYY-MM-DD):');
-            const time = prompt('Neue Uhrzeit (HH:MM):');
-            const description = prompt('Neue Beschreibung:');
-            if (date && time && description && password) {
-                const formData = new FormData();
-                formData.append('access_key', '82985997-3cf0-4b36-86a8-e208e79396a9');
-                formData.append('webhook', 'https://api.github.com/repos/marvineck/WebsiteGuY/dispatches');
-                formData.append('event_type', 'update-schedule');
-                formData.append('action', 'edit');
-                formData.append('index', index);
-                formData.append('date', date);
-                formData.append('time', time);
-                formData.append('description', description);
-                formData.append('password', password);
+            if (password !== ADMIN_PASSWORD) {
+                document.getElementById('message').textContent = 'Ungültiges Passwort.';
+                document.getElementById('message').className = 'error';
+                return;
+            }
 
-                try {
-                    const response = await fetch('https://api.web3forms.com/submit', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const result = await response.json();
-                    const message = document.getElementById('message');
-                    if (response.ok) {
-                        loadSchedule();
-                        message.textContent = 'Termin erfolgreich bearbeitet! (Änderungen können kurz dauern)';
-                        message.className = 'success';
-                    } else {
-                        message.textContent = result.message || 'Fehler beim Bearbeiten.';
-                        message.className = 'error';
-                    }
-                } catch (error) {
-                    document.getElementById('message').textContent = 'Serverfehler. Bitte später versuchen.';
-                    document.getElementById('message').className = 'error';
-                }
+            const date = prompt('Neues Datum (YYYY-MM-DD):', scheduleData.schedule[index].date);
+            const time = prompt('Neue Uhrzeit (HH:MM):', scheduleData.schedule[index].time);
+            const description = prompt('Neue Beschreibung:', scheduleData.schedule[index].description);
+
+            if (date && time && description) {
+                scheduleData.schedule[index] = { date, time, description };
+                loadSchedule();
+                document.getElementById('message').textContent = 'Termin bearbeitet! Bitte schedule.json herunterladen und hochladen.';
+                document.getElementById('message').className = 'success';
             }
         }
 
         // Delete event
-        async function deleteEvent(index) {
+        function deleteEvent(index) {
             const password = prompt('Passwort eingeben:');
-            if (password) {
-                const formData = new FormData();
-                formData.append('access_key', '82985997-3cf0-4b36-86a8-e208e79396a9');
-                formData.append('webhook', 'https://api.github.com/marvineck/WebsiteGuY/dispatches');
-                formData.append('event_type', 'update-schedule');
-                formData.append('action', 'delete');
-                formData.append('index', index);
-                formData.append('password', password);
-
-                try {
-                    const response = await fetch('https://api.web3forms.com/submit', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const result = await response.json();
-                    const message = document.getElementById('message');
-                    if (response.ok) {
-                        loadSchedule();
-                        message.textContent = 'Termin erfolgreich gelöscht! (Änderungen können kurz dauern)';
-                        message.className = 'success';
-                    } else {
-                        message.textContent = result.message || 'Fehler beim Löschen.';
-                        message.className = 'error';
-                    }
-                } catch (error) {
-                    document.getElementById('message').textContent = 'Serverfehler. Bitte später versuchen.';
-                    document.getElementById('message').className = 'error';
-                }
+            if (password !== ADMIN_PASSWORD) {
+                document.getElementById('message').textContent = 'Ungültiges Passwort.';
+                document.getElementById('message').className = 'error';
+                return;
             }
+
+            scheduleData.schedule.splice(index, 1);
+            loadSchedule();
+            document.getElementById('message').textContent = 'Termin gelöscht! Bitte schedule.json herunterladen und hochladen.';
+            document.getElementById('message').className = 'success';
         }
+
+        // Download updated schedule.json
+        document.getElementById('download-button').addEventListener('click', () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(scheduleData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute('href', dataStr);
+            downloadAnchor.setAttribute('download', 'schedule.json');
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            document.body.removeChild(downloadAnchor);
+        });
 
         // Load schedule on page load
         loadSchedule();
