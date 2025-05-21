@@ -4,7 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gong und Yoga - Termine bearbeiten</title>
-    <link href="style.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, button {
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #schedule-list {
+            list-style: none;
+            padding: 0;
+        }
+        #schedule-list li {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -67,7 +123,7 @@
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('/.netlify/functions/update-schedule', {
+                const response = await fetch('YOUR_API_ENDPOINT', { // Replace with your endpoint, e.g., AWS Lambda or Web3Forms
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ date, time, description, password, action: 'add' })
@@ -93,7 +149,7 @@
             const description = prompt('Neue Beschreibung:');
             if (date && time && description && password) {
                 try {
-                    const response = await fetch('/.netlify/functions/update-schedule', {
+                    const response = await fetch('YOUR_API_ENDPOINT', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ index, date, time, description, password, action: 'edit' })
@@ -116,7 +172,7 @@
             const password = prompt('Passwort eingeben:');
             if (password) {
                 try {
-                    const response = await fetch('/.netlify/functions/update-schedule', {
+                    const response = await fetch('YOUR_API_ENDPOINT', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ index, password, action: 'delete' })
