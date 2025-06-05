@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gong und Yoga Bröckelbeck</title>
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">🧘‍♀️</div>
+            <div class="header-text">
+                <h1>Gong und Yoga Bröckelbeck</h1>
+                <p>Harmonie für Körper und Geist</p>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="main-content">
+            <h2>Willkommen bei Gong und Yoga</h2>
+            <p>Wir bieten eine einzigartige Kombination aus Yoga-Praxis und der heilenden Kraft des Gongs. 
+            Unsere Kurse sind für alle Erfahrungsstufen geeignet und helfen dir dabei, Körper und Geist in Einklang zu bringen.</p>
+            
+            <h3>Über unsere Kurse</h3>
+            <p>Unsere Yogakurse verbinden traditionelle Asanas mit der tiefen Resonanz von Gongtönen. 
+            Diese Kombination schafft eine tiefere Entspannung und intensivere meditative Erfahrung.</p>
+        </div>
+        
+        <div class="sidebar">
+            <h3>Kontakt</h3>
+            <p><strong>Email:</strong> info@gongundyoga.de</p>
+            <p><strong>Telefon:</strong> 0123 456789</p>
+            <p><strong>Adresse:</strong> Yogastraße 42<br>12345 Zenstadt</p>
+        </div>
+    </div>
+
+    <div id="schedule-section">
+        <h2>🗓️ Aktuelle Termine</h2>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Hier findest du unsere aktuellen Yoga- und Gong-Termine
+        </p>
+        
+        <div id="schedule-container">
+            <div class="loading">
+                <p>Termine werden geladen...</p>
+            </div>
+        </div>
+    </div>
+
+    <a href="admin.html" class="admin-link">🔧 Admin</a>
+
+    <footer>
+        <p>&copy; 2025 Yoga und Gong. Alle Rechte vorbehalten.</p>
+        <p><a href="impressum.html">Impressum</a></p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ⚠️ WICHTIG: Ersetze diese Werte mit deinen echten Supabase-Daten
+        const SUPABASE_URL = 'DEINE_SUPABASE_URL_HIER'
+        const SUPABASE_ANON_KEY = 'DEIN_SUPABASE_ANON_KEY_HIER'
+        
+        // Supabase Client initialisieren
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+        // Termine laden
+        async function loadSchedule() {
+            const container = document.getElementById('schedule-container');
+            
+            try {
+                const { data: termine, error } = await supabase
+                    .from('termine')
+                    .select('*')
+                    .gte('datum', new Date().toISOString().split('T')[0]) // Nur zukünftige Termine
+                    .order('datum', { ascending: true })
+                    .order('uhrzeit', { ascending: true });
+
+                if (error) throw error;
+
+                if (termine.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #666;">Derzeit keine Termine verfügbar.</p>';
+                    return;
+                }
+
+                const scheduleGrid = document.createElement('div');
+                scheduleGrid.className = 'schedule-grid';
+
+                termine.forEach(termin => {
+                    const scheduleItem = document.createElement('div');
+                    scheduleItem.className = 'schedule-item';
+
+                    const datum = new Date(termin.datum).toLocaleDateString('de-DE', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    const uhrzeit = termin.uhrzeit.substring(0, 5); // HH:MM Format
+
+                    scheduleItem.innerHTML = `
+                        <div class="schedule-date">${datum}</div>
+                        <div class="schedule-time">🕐 ${uhrzeit} Uhr</div>
+                        <div class="schedule-title">${termin.titel}</div>
+                        <div class="schedule-type type-${termin.typ}">${getTypeLabel(termin.typ)}</div>
+                        ${termin.beschreibung ? `<div class="schedule-description">${termin.beschreibung}</div>` : ''}
+                        ${termin.max_teilnehmer ? `<div class="schedule-description"><strong>Max. Teilnehmer:</strong> ${termin.max_teilnehmer}</div>` : ''}
+                    `;
+
+                    scheduleGrid.appendChild(scheduleItem);
+                });
+
+                container.innerHTML = '';
+                container.appendChild(scheduleGrid);
+
+            } catch (error) {
+                console.error('Fehler beim Laden der Termine:', error);
+                container.innerHTML = `
+                    <div class="error">
+                        <strong>Fehler:</strong> Termine konnten nicht geladen werden. 
+                        Bitte überprüfe deine Supabase-Konfiguration.
+                    </div>
+                `;
+            }
+        }
+
+        function getTypeLabel(typ) {
+            const labels = {
+                'yoga': 'Yoga',
+                'gong': 'Gong',
+                'yoga-gong': 'Yoga + Gong'
+            };
+            return labels[typ] || typ;
+        }
+
+        // Termine beim Laden der Seite abrufen
+        document.addEventListener('DOMContentLoaded', loadSchedule);
+    </script>
+</body>
+</html>
