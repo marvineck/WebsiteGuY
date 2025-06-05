@@ -366,7 +366,7 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBubmhxeXd5cGdtZ2h4YWVwZmFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxMzcxMjYsImV4cCI6MjA2NDcxMzEyNn0.JIdab6jvS37y_IeMqDnwj7PSvr8Os3qpscAGyfo0bzM'
         
         // Supabase Client initialisieren
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
         // Login Form Handler
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
