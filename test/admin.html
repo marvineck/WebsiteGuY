@@ -251,6 +251,15 @@
             transform: translateY(-2px);
         }
 
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -359,14 +368,21 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Korrigierte Supabase-Einbindung -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2.39.0/dist/umd/supabase.js"></script>
     <script>
+        // Prüfung ob Supabase verfügbar ist
+        if (typeof supabase === 'undefined') {
+            document.body.innerHTML = '<div class="error-message">Fehler: Supabase konnte nicht geladen werden. Bitte prüfen Sie Ihre Internetverbindung.</div>';
+            throw new Error('Supabase SDK not loaded');
+        }
+
         // ⚠️ WICHTIG: Ersetze diese Werte mit deinen echten Supabase-Daten
         const SUPABASE_URL = 'https://pnnhqywypgmghxaepfad.supabase.co'
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBubmhxeXd5cGdtZ2h4YWVwZmFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxMzcxMjYsImV4cCI6MjA2NDcxMzEyNn0.JIdab6jvS37y_IeMqDnwj7PSvr8Os3qpscAGyfo0bzM'
         
         // Supabase Client initialisieren
-        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
         // Login Form Handler
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -376,7 +392,7 @@
             const password = document.getElementById('password').value;
             
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email: email,
                     password: password
                 });
@@ -406,7 +422,7 @@
             };
 
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('termine')
                     .insert([terminData]);
 
@@ -426,7 +442,7 @@
             const termineList = document.getElementById('termine-list');
             
             try {
-                const { data: termine, error } = await supabase
+                const { data: termine, error } = await supabaseClient
                     .from('termine')
                     .select('*')
                     .order('datum', { ascending: true })
@@ -522,7 +538,7 @@
             };
 
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('termine')
                     .update(terminData)
                     .eq('id', id);
@@ -544,7 +560,7 @@
             }
 
             try {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('termine')
                     .delete()
                     .eq('id', id);
@@ -562,7 +578,7 @@
         // Logout
         async function logout() {
             try {
-                const { error } = await supabase.auth.signOut();
+                const { error } = await supabaseClient.auth.signOut();
                 if (error) throw error;
                 
                 hideAdminPanel();
@@ -609,16 +625,20 @@
 
         // Prüfen ob bereits eingeloggt
         document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (session) {
-                showAdminPanel();
-                loadTermine();
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                
+                if (session) {
+                    showAdminPanel();
+                    loadTermine();
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Session:', error);
             }
         });
 
         // Session-Änderungen überwachen
-        supabase.auth.onAuthStateChange((event, session) => {
+        supabaseClient.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT') {
                 hideAdminPanel();
             }
