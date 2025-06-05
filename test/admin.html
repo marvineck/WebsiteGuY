@@ -332,21 +332,6 @@
                             <label for="newTitel">Titel:</label>
                             <input type="text" id="newTitel" placeholder="z.B. Yoga für Anfänger" required>
                         </div>
-                        <div class="form-group">
-                            <label for="newTyp">Typ:</label>
-                            <select id="newTyp" required>
-                                <option value="yoga">Yoga</option>
-                                <option value="gong">Gong</option>
-                                <option value="yoga-gong">Yoga + Gong</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="newMaxTeilnehmer">Max. Teilnehmer:</label>
-                            <input type="number" id="newMaxTeilnehmer" min="1" max="50" value="10">
-                        </div>
                     </div>
 
                     <div class="form-group">
@@ -416,8 +401,6 @@
                 datum: document.getElementById('newDatum').value,
                 uhrzeit: document.getElementById('newUhrzeit').value,
                 titel: document.getElementById('newTitel').value,
-                typ: document.getElementById('newTyp').value,
-                max_teilnehmer: parseInt(document.getElementById('newMaxTeilnehmer').value),
                 beschreibung: document.getElementById('newBeschreibung').value || null
             };
 
@@ -487,21 +470,6 @@
                                     <label>Titel:</label>
                                     <input type="text" value="${termin.titel}" name="titel" required>
                                 </div>
-                                <div class="form-group">
-                                    <label>Typ:</label>
-                                    <select name="typ" required>
-                                        <option value="yoga" ${termin.typ === 'yoga' ? 'selected' : ''}>Yoga</option>
-                                        <option value="gong" ${termin.typ === 'gong' ? 'selected' : ''}>Gong</option>
-                                        <option value="yoga-gong" ${termin.typ === 'yoga-gong' ? 'selected' : ''}>Yoga + Gong</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Max. Teilnehmer:</label>
-                                    <input type="number" value="${termin.max_teilnehmer || 10}" name="max_teilnehmer" min="1" max="50">
-                                </div>
                             </div>
 
                             <div class="form-group">
@@ -532,8 +500,6 @@
                 datum: formData.get('datum'),
                 uhrzeit: formData.get('uhrzeit'),
                 titel: formData.get('titel'),
-                typ: formData.get('typ'),
-                max_teilnehmer: parseInt(formData.get('max_teilnehmer')),
                 beschreibung: formData.get('beschreibung') || null
             };
 

@@ -26,7 +26,6 @@
             Diese Kombination schafft eine tiefere Entspannung und intensivere meditative Erfahrung.</p>
         </div>
         
-        
         <div class="sidebar">
             <h3>Kontakt</h3>
             <p>Email: info@gongundyoga.de</p>
@@ -34,17 +33,93 @@
             <p>Adresse: Yogastraße 42, 12345 Zenstadt</p>
         </div>
     </div>
-            <div id="schedule-section">
-                <h2>Aktuelle Termine</h2>
-                <p>Hier findest du unsere aktuellen Yoga- und Gong-Termine:</p>
-            
-    <ul id ="termine">
-    </ul>
+    
+    <div id="schedule-section">
+        <h2>Aktuelle Termine</h2>
+        <p>Hier findest du unsere aktuellen Yoga- und Gong-Termine:</p>
+        
+        <ul id="termine"> 
+            </ul>
     </div>
+
     <a href="admin.html" class="admin-link">🔧 Admin</a>
     <footer>
         <p>&copy; 2025 Yoga und Gong. Alle Rechte vorbehalten.</p>
         <p><a href="impressum.html">Impressum</a></p>
     </footer>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2.39.0/dist/umd/supabase.js"></script>
+    <script>
+        // ⚠️ WICHTIG: Ersetze diese Werte mit deinen echten Supabase-Daten
+        const SUPABASE_URL = 'https://pnnhqywypgmghxaepfad.supabase.co'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBubmhxeXd5cGdtZ2h4YWVwZmFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxMzcxMjYsImV4cCI6MjA2NDcxMzEyNn0.JIdab6jvS37y_IeMqDnwj7PSvr8Os3qpscAGyfo0bzM'
+        
+        // Supabase Client initialisieren
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); // 'supabase.createClient' ist hier korrekt, da die UMD-Version 'supabase' als globales Objekt bereitstellt.
+
+        // Termine laden
+        async function loadSchedule() {
+            // ÄNDERUNG: Die korrekte ID 'termine' verwenden
+            const termineList = document.getElementById('termine'); 
+            
+            // Setzen Sie den innerHTML zu Beginn, um Ladezustand anzuzeigen
+            termineList.innerHTML = '<p style="text-align: center; color: #666;">Lade Termine...</p>';
+
+            try {
+                const { data: termine, error } = await supabaseClient // 'supabaseClient' hier verwenden, da es Ihre Initialisierung ist
+                    .from('termine')
+                    .select('*')
+                    .gte('datum', new Date().toISOString().split('T')[0]) // Nur zukünftige Termine
+                    .order('datum', { ascending: true })
+                    .order('uhrzeit', { ascending: true });
+
+                if (error) throw error;
+
+                if (termine.length === 0) {
+                    termineList.innerHTML = '<p style="text-align: center; color: #666;">Derzeit keine Termine verfügbar.</p>';
+                    return;
+                }
+
+                // ÄNDERUNG: Leere die Liste, bevor neue Elemente hinzugefügt werden
+                termineList.innerHTML = ''; 
+                
+                termine.forEach(termin => {
+                    // ÄNDERUNG: Erstelle ein LI-Element für jede Termin
+                    const terminItem = document.createElement('li'); 
+                    terminItem.className = 'schedule-item'; // Klasse kann beibehalten werden, für Styling
+
+                    const datum = new Date(termin.datum).toLocaleDateString('de-DE', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    const uhrzeit = termin.uhrzeit.substring(0, 5); // HH:MM Format
+
+                    terminItem.innerHTML = `
+                        <div class="schedule-date">${datum}</div>
+                        <div class="schedule-time">🕐 ${uhrzeit} Uhr</div>
+                        <div class="schedule-title">${termin.titel}</div>
+                        ${termin.beschreibung ? `<div class="schedule-description">${termin.beschreibung}</div>` : ''}
+                    `;
+
+                    // Füge das LI-Element zur UL-Liste hinzu
+                    termineList.appendChild(terminItem); 
+                });
+
+            } catch (error) {
+                console.error('Fehler beim Laden der Termine:', error);
+                termineList.innerHTML = `
+                    <li class="error">
+                        <strong>Fehler:</strong> Termine konnten nicht geladen werden. 
+                        Bitte überprüfe deine Supabase-Konfiguration und die Browser-Konsole für Details.
+                    </li>
+                `;
+            }
+        }
+        // Termine beim Laden der Seite abrufen
+        document.addEventListener('DOMContentLoaded', loadSchedule);
+    </script>
 </body>
 </html>
