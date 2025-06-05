@@ -267,7 +267,6 @@
             }
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <a href="index.html" class="home-link">← Zurück zur Hauptseite</a>
@@ -360,6 +359,270 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ⚠️ WICHTIG: Ersetze diese Werte mit deinen echten Supabase-Daten
+        const SUPABASE_URL = 'https://pnnhqywypgmghxaepfad.supabase.co'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBubmhxeXd5cGdtZ2h4YWVwZmFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxMzcxMjYsImV4cCI6MjA2NDcxMzEyNn0.JIdab6jvS37y_IeMqDnwj7PSvr8Os3qpscAGyfo0bzM'
+        
+        // Supabase Client initialisieren
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+        // Login Form Handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) throw error;
+
+                showMessage('login-message', 'Login erfolgreich!', 'success');
+                showAdminPanel();
+                loadTermine();
+
+            } catch (error) {
+                showMessage('login-message', `Login fehlgeschlagen: ${error.message}`, 'error');
+            }
+        });
+
+        // Neuen Termin hinzufügen
+        document.getElementById('addTerminForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const terminData = {
+                datum: document.getElementById('newDatum').value,
+                uhrzeit: document.getElementById('newUhrzeit').value,
+                titel: document.getElementById('newTitel').value,
+                typ: document.getElementById('newTyp').value,
+                max_teilnehmer: parseInt(document.getElementById('newMaxTeilnehmer').value),
+                beschreibung: document.getElementById('newBeschreibung').value || null
+            };
+
+            try {
+                const { data, error } = await supabase
+                    .from('termine')
+                    .insert([terminData]);
+
+                if (error) throw error;
+
+                showMessage('admin-message', 'Termin erfolgreich hinzugefügt!', 'success');
+                document.getElementById('addTerminForm').reset();
+                loadTermine();
+
+            } catch (error) {
+                showMessage('admin-message', `Fehler beim Hinzufügen: ${error.message}`, 'error');
+            }
+        });
+
+        // Termine laden
+        async function loadTermine() {
+            const termineList = document.getElementById('termine-list');
+            
+            try {
+                const { data: termine, error } = await supabase
+                    .from('termine')
+                    .select('*')
+                    .order('datum', { ascending: true })
+                    .order('uhrzeit', { ascending: true });
+
+                if (error) throw error;
+
+                if (termine.length === 0) {
+                    termineList.innerHTML = '<p style="text-align: center; color: #666;">Keine Termine vorhanden.</p>';
+                    return;
+                }
+
+                termineList.innerHTML = '';
+                
+                termine.forEach(termin => {
+                    const terminElement = document.createElement('div');
+                    terminElement.className = 'schedule-item';
+                    terminElement.innerHTML = `
+                        <div class="schedule-item-header">
+                            <div>
+                                <div class="schedule-item-title">${termin.titel}</div>
+                                <div class="schedule-item-date">
+                                    📅 ${formatDate(termin.datum)} | 🕐 ${termin.uhrzeit.substring(0, 5)} Uhr
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form id="form-${termin.id}" onsubmit="updateTermin(event, ${termin.id})">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Datum:</label>
+                                    <input type="date" value="${termin.datum}" name="datum" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Uhrzeit:</label>
+                                    <input type="time" value="${termin.uhrzeit}" name="uhrzeit" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Titel:</label>
+                                    <input type="text" value="${termin.titel}" name="titel" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Typ:</label>
+                                    <select name="typ" required>
+                                        <option value="yoga" ${termin.typ === 'yoga' ? 'selected' : ''}>Yoga</option>
+                                        <option value="gong" ${termin.typ === 'gong' ? 'selected' : ''}>Gong</option>
+                                        <option value="yoga-gong" ${termin.typ === 'yoga-gong' ? 'selected' : ''}>Yoga + Gong</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Max. Teilnehmer:</label>
+                                    <input type="number" value="${termin.max_teilnehmer || 10}" name="max_teilnehmer" min="1" max="50">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Beschreibung:</label>
+                                <textarea name="beschreibung" placeholder="Beschreibung...">${termin.beschreibung || ''}</textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">💾 Speichern</button>
+                            <button type="button" class="btn btn-danger" onclick="deleteTermin(${termin.id})">🗑️ Löschen</button>
+                        </form>
+                    `;
+                    termineList.appendChild(terminElement);
+                });
+
+            } catch (error) {
+                termineList.innerHTML = `<div class="alert alert-error">Fehler beim Laden der Termine: ${error.message}</div>`;
+            }
+        }
+
+        // Termin aktualisieren
+        async function updateTermin(event, id) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const terminData = {
+                datum: formData.get('datum'),
+                uhrzeit: formData.get('uhrzeit'),
+                titel: formData.get('titel'),
+                typ: formData.get('typ'),
+                max_teilnehmer: parseInt(formData.get('max_teilnehmer')),
+                beschreibung: formData.get('beschreibung') || null
+            };
+
+            try {
+                const { data, error } = await supabase
+                    .from('termine')
+                    .update(terminData)
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showMessage('admin-message', 'Termin erfolgreich aktualisiert!', 'success');
+                loadTermine();
+
+            } catch (error) {
+                showMessage('admin-message', `Fehler beim Aktualisieren: ${error.message}`, 'error');
+            }
+        }
+
+        // Termin löschen
+        async function deleteTermin(id) {
+            if (!confirm('Termin wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('termine')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showMessage('admin-message', 'Termin erfolgreich gelöscht!', 'success');
+                loadTermine();
+
+            } catch (error) {
+                showMessage('admin-message', `Fehler beim Löschen: ${error.message}`, 'error');
+            }
+        }
+
+        // Logout
+        async function logout() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                
+                hideAdminPanel();
+                showMessage('login-message', 'Erfolgreich abgemeldet.', 'success');
+                
+            } catch (error) {
+                showMessage('admin-message', `Fehler beim Abmelden: ${error.message}`, 'error');
+            }
+        }
+
+        // UI Helper Functions
+        function showAdminPanel() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('admin-panel').classList.add('active');
+        }
+
+        function hideAdminPanel() {
+            document.getElementById('login-container').style.display = 'block';
+            document.getElementById('admin-panel').classList.remove('active');
+            document.getElementById('loginForm').reset();
+        }
+
+        function showMessage(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+            
+            container.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+            
+            // Message nach 5 Sekunden ausblenden
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('de-DE', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Prüfen ob bereits eingeloggt
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session) {
+                showAdminPanel();
+                loadTermine();
+            }
+        });
+
+        // Session-Änderungen überwachen
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT') {
+                hideAdminPanel();
+            }
+        });
+    </script>
 </body>
 </html>
