@@ -4,51 +4,43 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
-    background-color: #f9f7f2;
+    background-color: #f5e8e3;
 }
 
 header {
-    background-color: #6a824e;
+    background-color: #4a2725;
     border-radius: 0 0 10px 10px;
     margin-bottom: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
     padding: 20px 0;
-}
-
-.Logo {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
+    text-align: center;
 }
 
 .Logo img {
-    height: 80px;
-    width: auto;
-    max-width: 160px;
+    height: 140px;
+    width: 140px;
+    max-width: 100%;
     display: block;
-    margin-right: 20px;
+    object-fit: contain;
+    margin: 0 auto;
 }
 
 .header-text {
+    justify-content: center;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    
 }
 
 .header-text h1,
 .header-text p {
     margin: 0;
     text-align: center;
-    color: white;
+    color: #fff;
 }
 
 
 h1, h2, h3 {
-    color: #4a644c;
+    color: #4a2725;
     margin: 20px 0 10px;
 }
 
@@ -67,34 +59,39 @@ h1, h2, h3 {
 .sidebar {
     flex: 1;
     min-width: 250px;
-    background-color: #e8f0e9;
+    background-color: #e8d6d1;
     padding: 20px;
     border-radius: 10px;
+    color: #4a2725;
 }
 
 footer {
     text-align: center;
     margin-top: 40px;
     padding: 20px;
-    background-color: #6a824e;
+    background-color: #4a2725;
     border-radius: 10px 10px 0 0;
-    color: white;
+    color: #fff;
 }
 
 footer a {
     text-decoration: none;
-    color: inherit;
+    color: #eabf9f;
+}
+
+footer a:hover {
+    color: #fff;
 }
 
 iframe {
     border: none;
-    border-radius: 10px;
+    border-radius: 10px 10px 0 0;
     box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    background: white;
+    background: #fff;
 }
 
 #schedule-section {
-    background: #e8f0e9;
+    background: #e8d6d1;
     padding: 24px 16px;
     border-radius: 10px;
     margin-bottom: 40px;
@@ -102,6 +99,7 @@ iframe {
 
 #schedule-section h2 {
     margin-top: 0;
+    color: #4a2725;
 }
 
 @media (max-width: 768px) {
